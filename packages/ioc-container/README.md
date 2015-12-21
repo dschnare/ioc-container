@@ -193,7 +193,7 @@ release singleton instances the container must be disposed.
 
 Attempts to inject the dependencies of the object. If the object is a function
 then the formal parameter names are used as dependency names when calling
-`resolve()`. For the return value of the function and object values property
+`resolve()`. For the return value of the function or objects, property
 names that have a value of `null` and are not prefixed with `_` are used as
 dependency names when calling `resolve()`. If a dependency cannot be found then
 an error is thrown.
