@@ -179,9 +179,12 @@ release singleton instances the container must be disposed.
     }, { transient: true }); // transient
 
     let b = ioc.resolve('b'); // { name: 'b', a: { name: 'a', initCount: 1 } }
+    let a = ioc.resolve('a');
+    b.a === a // true
     ioc.release(b);
 
     b = ioc.resolve('b'); // { name: 'b', a: { name: 'a', initCount: 1 } }
+    b.a === a // true
 
 
 ## IocContainer#inject
