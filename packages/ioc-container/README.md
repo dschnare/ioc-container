@@ -102,7 +102,7 @@ called normally unless the `newable` option is specified. If `newable` is
 set then the `new` operator will be used when calling the function.
 
 All services are singletons, that is they are only created once and the same
-instances is returned each time `resolve()` is called. If the `transient`
+instance is returned each time `resolve()` is called. If the `transient`
 option is set then a new instance will be created each time `resolve()` is
 called.
 
