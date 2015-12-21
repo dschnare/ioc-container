@@ -147,7 +147,9 @@ then an error is thrown.
 
     canResolve(name)
 
-Determines if the service name can be resolved without throwing an error.
+Determines if the service name can be resolved without throwing an error. This
+will delegate to the parent container if one is specified and the service name
+cannot be resolved in this own container.
 
 
 ## IocContainer#release
