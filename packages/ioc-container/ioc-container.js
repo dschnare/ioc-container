@@ -230,7 +230,9 @@ IocContainer = class {
 
     if (obj) {
       for (let key in obj) {
-        if (deps.indexOf(key) < 0 &&
+        if (key.charAt(0) !== '_' &&
+          obj[key] === null &&
+          deps.indexOf(key) < 0 &&
           this.canResolve(key)) {
           obj[key] = this.resolve(key);
         }

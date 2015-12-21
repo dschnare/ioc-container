@@ -82,4 +82,162 @@ Now open `ioc-proj.js` and replace the contents of that file with this quick sta
 
 # Reference
 
-The API reference is in [REFERENCE.md](REFERENCE.md).
+## IocContainer()
+
+    IocContainer(parentContainer)
+
+Constructs a new intance of an IOC container with an optional parent IOC
+conatiner. If a parent container is specified then `resolve()` will traverse
+into the parent container if the resolution fails using this own container.
+
+
+## IocContainer#install
+
+    install(name, obj, { transient, newable })
+
+Installs a new service that can be resolved with the specified name.
+The obj can be a function or object. If an object then `Object.create()`
+is used to create new instances. If a function then the function will be
+called normally unless the `newable` option is specified. If `newable` is
+set then the `new` operator will be used when calling the function.
+
+All services are singletons, that is they are only created once and the same
+instances is returned each time `resolve()` is called. If the `transient`
+option is set then a new instance will be created each time `resolve()` is
+called.
+
+All services will have their dependencies injected automatically. For functions
+the names of their formal parameters will be used as dependency names. If a
+formal argument results with no service being found an error will be thrown.
+
+For objects and the return value of functions, property names will be used as
+dependency names only if they are set to `null`. Properties starting with `_`
+are skipped over.
+
+Any formal parameter or property that starts with `$` is considered a
+configuration key, and will be set to the config key without the `$` prefix.
+
+**Example:**
+
+    class MyClass {
+      constructor(a, $port) { this.a = a; this.port = $port; }
+    }
+    ioc.config.set('port', 3000);
+    ioc.install('myClass', MyClass, { newable: true })
+    ioc.install('a', { name: 'a', $port: null }, { transient: true });
+    let myClass = ioc.resolve('myClass');
+
+## IocContainer#resolve
+
+    resolve(name)
+
+Attempts to resolve the named service. If the name starts with `$` then the
+config key without the `$` prefix will be looked up. If the resolution fails
+then an error is thrown.
+
+**Example:**
+
+    ioc.config.set('port', 3000);
+    ioc.resolve('$port') // 3000
+    ioc.install('a', { name: 'a', $port: null });
+    ioc.resolve('a'); // { name: 'a', $port: 3000 }
+
+
+## IocConatiner#canResolve
+
+    canResolve(name)
+
+Determines if the service name can be resolved without throwing an error.
+
+
+## IocContainer#release
+
+    release(obj)
+
+Attempts to release a transient instance managed by this IOC container and all its
+dependencies. If the instance being released is a singleton then this method
+does nothing. Only transient instances can be released using this method. To
+release singleton instances the container must be disposed.
+
+**Example:**
+
+    ioc.install('a', {
+      name: 'a',
+      initCount: 0,
+      initialize() {
+        this.initCount += 1;
+      }
+    }) // singleton
+    ioc.install('b', {
+      name: 'b',
+      a: null,
+      destroy: function () {
+        this.a = null;
+      }
+    }, { transient: true }); // transient
+
+    let b = ioc.resolve('b'); // { name: 'b', a: { name: 'a', initCount: 1 } }
+    ioc.release(b);
+
+    b = ioc.resolve('b'); // { name: 'b', a: { name: 'a', initCount: 1 } }
+
+
+## IocContainer#inject
+
+    inject(obj)
+
+Attempts to inject the dependencies of the object. If the object is a function
+then the formal parameter names are used as dependency names when calling
+`resolve()`. For the return value of the function and object values property
+names that have a value of `null` and are not prefixed with `_` are used as
+dependency names when calling `resolve()`. If a dependency cannot be found then
+an error is thrown.
+
+**Example:**
+
+    ioc.config.set('port', 3000);
+    ioc.install('a', { name: 'a' });
+    let o ioc.inject(function (a, $port) {
+      return { a: a, port: $port };
+    }); // { a: { name: 'a' }, port: 3000 }
+
+
+## IocContainer#injectNewable
+
+    injectNewable(Ctor)
+
+Same as `inject()`, but accepts a constructor.
+
+**Example:**
+
+    ioc.config.set('port', 3000);
+    ioc.install('a', { name: 'a' });
+    class T {
+      constructor(a, $port) {
+        this.a = a;
+        this.port = $port;
+      }
+    }
+    let t = ioc.injectNewable(T);
+
+
+## IocContainer#dispose
+
+    dispose()
+
+Releases all managed instances, including singletons. Also nulls out the
+parent container reference.
+
+
+## IocContainer#on
+
+    on(eventType, callback)
+
+Registers a callback to be called when an event is fired. Returns an object
+with a `off()` method that when called will remove the callback from the
+internal list.
+
+
+## IocContainer Events
+
+- *dispose* Called when the container has been disposed
