@@ -216,6 +216,13 @@ The service `model` is an object with the following shape.
       }
     });
 
+    ioc.addLifecycleConcern(function (instance, model) {
+      // determine when to apply this concern, could do a check on the instance
+      return true; // always apply this concern.
+    }, {
+       create() { /* do stuff on create */ }
+    });
+
 ## IocContainer#inject
 
     inject(obj)
