@@ -24,9 +24,6 @@ Tinytest.add('ioc container injection and release', function (test) {
     name: 'b',
     initialize() {
       this.isInitialized = true;
-    },
-    destroy() {
-      this.isDestroyed = true;
     }
   }, { transient: true });
   ioc.install('c', class {
@@ -37,10 +34,6 @@ Tinytest.add('ioc container injection and release', function (test) {
 
     initialize() {
       this.isInitialized = true;
-    }
-
-    destroy() {
-      this.isDestroyed = true;
     }
   }, { transient: true, newable: true });
 
@@ -68,15 +61,15 @@ Tinytest.add('ioc container injection and release', function (test) {
   test.equal(deps[2].deps[0].value.name, 'a', 'Expected first dep of c to be a');
 
   ioc.release(t);
+  test.isNull(t.a, 'Expected t#a to be null');
+  test.isNull(t.b, 'Expected t#b to be null');
+  test.isNull(t.c, 'Expected t#c to be null');
   test.equal(ioc._models.t.instances.length, 0, 'Expected to have no t instances left in IOC container');
   test.equal(ioc._models.a.instances.length, 1, 'Expected to have one a instances left in IOC container');
   test.equal(ioc._models.b.instances.length, 0, 'Expected to have no b instances left in IOC container');
   test.equal(ioc._models.c.instances.length, 0, 'Expected to have no c instances left in IOC container');
 
   test.isTrue(t.isDestroyed, 'Expected to t#destroy to be called');
-  test.isFalse(t.a.isDestroyed, 'Expected to t#a#destroy to be called');
-  test.isTrue(t.b.isDestroyed, 'Expected to t#b#destroy to be called');
-  test.isTrue(t.c.isDestroyed, 'Expected to t#c#destroy to be called');
 });
 
 Tinytest.add('ioc parent container injection', function (test) {

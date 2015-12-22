@@ -18,10 +18,6 @@ Now open `ioc-proj.js` and replace the contents of that file with this quick sta
           this._myOtherClass = myOtherClass;
           this.port = $port;
         }
-
-        destroy() {
-          this._myOtherClass = null;
-        }
       }
 
       class MyOtherClass {
@@ -39,9 +35,7 @@ Now open `ioc-proj.js` and replace the contents of that file with this quick sta
         },
         destroy() {
           // do stuff to destroy myself like removing event listeners
-          // and null references out.
-          this.myOtherClass = null;
-          this.myClass = null;
+          // myOtherClass and myClass will automatically be nulled out for us.
           console.log('myObj#destroy()');
         }
       };
@@ -161,6 +155,9 @@ dependencies. If the instance being released is a singleton then this method
 does nothing. Only transient instances can be released using this method. To
 release singleton instances the container must be disposed.
 
+All properties that have been set to a managed instance will automatically be
+set to null when the owning instance is released.
+
 **Example:**
 
     ioc.install('a', {
@@ -173,15 +170,13 @@ release singleton instances the container must be disposed.
     ioc.install('b', {
       name: 'b',
       a: null,
-      destroy: function () {
-        this.a = null;
-      }
     }, { transient: true }); // transient
 
     let b = ioc.resolve('b'); // { name: 'b', a: { name: 'a', initCount: 1 } }
     let a = ioc.resolve('a');
     b.a === a // true
     ioc.release(b);
+    b.a // null
 
     b = ioc.resolve('b'); // { name: 'b', a: { name: 'a', initCount: 1 } }
     b.a === a // true

@@ -6,10 +6,6 @@ if (Meteor.isClient) {
       this._myOtherClass = myOtherClass;
       this.port = $port;
     }
-
-    destroy() {
-      this._myOtherClass = null;
-    }
   }
 
   class MyOtherClass {
@@ -26,10 +22,8 @@ if (Meteor.isClient) {
       console.log('myObj#initialize()', this.$port, this.myOtherClass, this.myClass);
     },
     destroy() {
-      // do stuff to destroy myself like removing event listeners
-      // and null references out.
-      this.myOtherClass = null;
-      this.myClass = null;
+      // do stuff to destroy myself like removing event listeners.
+      // myOtherClass and myClass will automatically be nulled out for us.
       console.log('myObj#destroy()');
     }
   };

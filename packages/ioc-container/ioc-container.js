@@ -133,7 +133,7 @@ IocContainer = class {
 
         // transient or first singleton
         if (model.transient || instances.length === 0) {
-          let instance = { deps: [] };
+          let instance = { name: name, deps: [] };
           this._resolveStack.push(instance);
           instance.value = handler();
           instances.push(instance);
@@ -158,7 +158,7 @@ IocContainer = class {
       // If we have a parent IOC Container then we relay this
       // resolve call to them, otherwise we rethrow the error.
       if (this._parentContainer) {
-        let instance = { deps: [] };
+        let instance = { name: name, deps: [] };
         instance.value = this._parentContainer.resolve(name);
 
         let scope = this._resolveStack[this._resolveStack.length - 1];
@@ -338,6 +338,12 @@ IocContainer = class {
 
             while (instance.deps.length) {
               let dep = instance.deps.pop();
+              instance.value[dep.name] = null;
+              for (let key in instance.value) {
+                if (instance.value[key] === dep.value) {
+                  instance.value[key] = null;
+                }
+              }
               this._release((inst) => inst === dep, { transient: true });
             }
 
