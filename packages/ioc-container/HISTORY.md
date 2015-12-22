@@ -1,3 +1,10 @@
+# 0.0.4
+
+**Dec. 22, 2015**
+
+- Add missing section to reference docs for `addLifecycleConcern()`.
+
+
 # 0.0.3
 
 **Dec. 21, 2015**
