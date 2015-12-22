@@ -182,6 +182,40 @@ set to null when the owning instance is released.
     b.a === a // true
 
 
+## IocContainer#addLifecycleConcern
+
+    addLifecycleConcern(nameOrPredicate, { create, destroy })
+
+Adds a lifecycle concern that will be called during a lifecycle event either
+for a particular service or any service that satisfies the predicate.
+
+The `create` concern is called after a service has been initialized and
+provides a mechanism to modify the instance or inspect the service's model.
+
+The `destroy` concern is called before a service is to be destroyed and
+provides a mechinism to modify the instance or inspect the service's model.
+
+The service `model` is an object with the following shape.
+
+    {
+      newable,
+      transient,
+      handler(),
+      instances: [{ value, deps, name }],
+      concerns?: [{ create, destroy }]
+    }
+
+**Example:**
+
+    ioc.addLifecycleConcern('myClass', {
+      create(instance, model) {
+        // do stuff to the instance or inspect the model.
+      },
+      destroy(instance, model) {
+        // clean up.
+      }
+    });
+
 ## IocContainer#inject
 
     inject(obj)
