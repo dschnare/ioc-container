@@ -100,8 +100,10 @@ IocContainer = class {
       model.handler = () => this.injectNewable(obj);
     } else if (typeof obj === 'function') {
       model.handler = () => this.inject(obj);
-    } else {
+    } else if (obj && typeof obj === 'object') {
       model.handler = () => this.inject(Object.create(obj));
+    } else {
+      model.handler = () => obj;
     }
   }
 

@@ -90,10 +90,12 @@ into the parent container if the resolution fails using this own container.
     install(name, obj, { transient, newable })
 
 Installs a new service that can be resolved with the specified name.
-The obj can be a function or object. If an object then `Object.create()`
-is used to create new instances. If a function then the function will be
-called normally unless the `newable` option is specified. If `newable` is
-set then the `new` operator will be used when calling the function.
+The obj can be a function, object or primitive value. If an object then
+`Object.create()` is used to create new instances. If a function then the
+function will be called normally unless the `newable` option is specified. If
+`newable` is set then the `new` operator will be used when calling the
+function. If a primitive value then the value will be resolved as-is
+(i.e. returned without modification).
 
 All services are singletons, that is they are only created once and the same
 instance is returned each time `resolve()` is called. If the `transient`
@@ -107,6 +109,8 @@ formal argument results with no service being found an error will be thrown.
 For objects and the return value of functions, property names will be used as
 dependency names only if they are set to `null`. Properties starting with `_`
 are skipped over.
+
+Primitive values will have no depedencies injected.
 
 Any formal parameter or property that starts with `$` is considered a
 configuration key, and will be set to the config key without the `$` prefix.

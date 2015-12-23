@@ -1,3 +1,10 @@
+# 0.0.5
+
+**Dec. 22, 2015**
+
+- Add support for installing primitive values. Primitive values will not have dependencies injected.
+
+
 # 0.0.4
 
 **Dec. 22, 2015**
