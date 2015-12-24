@@ -230,7 +230,7 @@ IocContainer = class {
       }
     }
 
-    if (obj) {
+    if (obj && typeof obj === 'object') {
       for (let key in obj) {
         if (key.charAt(0) !== '_' &&
           obj[key] === null &&

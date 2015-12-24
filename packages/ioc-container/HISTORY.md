@@ -1,3 +1,10 @@
+# 0.0.6
+
+**Dec. 24, 2015**
+
+- Prevent dependency injection when `inject()` is called with a primitive value.
+
+
 # 0.0.5
 
 **Dec. 22, 2015**
