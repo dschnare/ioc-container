@@ -66,7 +66,7 @@ IocContainer = class {
     this._models = {};
     this._predicatedConcerns = [];
     this._resolveStack = [];
-    this._parentContainer = parentContainer;
+    this.parentContainer = parentContainer;
     // Instances created from the parent container that this container
     // is directly managing. This does not include the instances created
     // by the parent container but are being tracked as a dependency of
@@ -78,11 +78,11 @@ IocContainer = class {
     // released by calling dispose() on the parent container as usual.
     this._parentContainerInstances = [];
     this._callbacks = {};
-    this.config = new Config(this._parentContainer ?
-      this._parentContainer.config : null);
+    this.config = new Config(this.parentContainer ?
+      this.parentContainer.config : null);
 
-    if (this._parentContainer) {
-      this._parentContainer.on('dispose', () => {
+    if (this.parentContainer) {
+      this.parentContainer.on('dispose', () => {
         this.dispose();
       });
     }
@@ -110,7 +110,7 @@ IocContainer = class {
   canResolve(name) {
     return name in this._models ||
       (name.charAt(0) === '$' && this.config.exists(name.substr(1))) ||
-      (this._parentContainer && this._parentContainer.canResolve(name));
+      (this.parentContainer && this.parentContainer.canResolve(name));
   }
 
   resolve(name) {
@@ -159,16 +159,16 @@ IocContainer = class {
     } catch (error) {
       // If we have a parent IOC Container then we relay this
       // resolve call to them, otherwise we rethrow the error.
-      if (this._parentContainer) {
+      if (this.parentContainer) {
         let instance = { name: name, deps: [] };
-        instance.value = this._parentContainer.resolve(name);
+        instance.value = this.parentContainer.resolve(name);
 
         let scope = this._resolveStack[this._resolveStack.length - 1];
         if (scope) {
           scope.deps.push(instance);
           // Release override.
           instance.release = () => {
-            this._parentContainer.release(instance.value);
+            this.parentContainer.release(instance.value);
           };
         } else {
           this._parentContainerInstances.push(instance);
@@ -262,12 +262,12 @@ IocContainer = class {
     // release any instances that are being tracked by our parent container
     // directly.
     while (this._parentContainerInstances.length) {
-      this._parentContainer.release(
+      this.parentContainer.release(
         this._parentContainerInstances.pop().value
       );
     }
     // null out our parent IOC Container
-    this._parentContainer = null;
+    this.parentContainer = null;
     // call the 'dispose' callbacks
     let list = this._callbacks.dispose;
     if (list) {
