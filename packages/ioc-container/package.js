@@ -1,7 +1,7 @@
 /*global Package*/
 Package.describe({
   name: 'dschnare:ioc-container',
-  version: '0.0.7',
+  version: '0.0.8',
   // Brief, one-line summary of the package.
   summary: 'A simple IOC container for Meteor',
   // URL to the Git repository containing the source code for this package.

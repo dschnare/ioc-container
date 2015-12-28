@@ -100,7 +100,7 @@ IocContainer = class {
       model.handler = () => this.injectNewable(obj);
     } else if (typeof obj === 'function') {
       model.handler = () => this.inject(obj);
-    } else if (obj && typeof obj === 'object') {
+    } else if (obj && typeof obj === 'object' && obj.prototype) {
       model.handler = () => this.inject(Object.create(obj));
     } else {
       model.handler = () => obj;
@@ -230,7 +230,7 @@ IocContainer = class {
       }
     }
 
-    if (obj && typeof obj === 'object') {
+    if (obj && typeof obj === 'object' && obj.prototype) {
       for (let key in obj) {
         if (key.charAt(0) !== '_' &&
           obj[key] === null &&

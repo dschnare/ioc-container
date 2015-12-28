@@ -1,3 +1,10 @@
+# 0.0.8
+
+**Dec. 28, 2015**
+
+- Fix issue with dependency injection with primitive values.
+
+
 # 0.0.7
 
 **Dec. 25, 2015**
