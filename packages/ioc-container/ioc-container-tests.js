@@ -74,14 +74,16 @@ Tinytest.add('ioc container injection and release', function (test) {
 
 Tinytest.add('ioc parent container injection', function (test) {
   class T {
-    constructor(a, b) {
+    constructor(a, b, array) {
       this.a = a;
       this.b = b;
+      this.array = array;
     }
   }
 
   let ioc = new IocContainer();
   ioc.install('a', { name: 'a' });
+  ioc.install('array', [1, 2, 3, 4]);
 
   let childIoc = new IocContainer(ioc);
   childIoc.install('b', { name: 'b' });
@@ -92,12 +94,14 @@ Tinytest.add('ioc parent container injection', function (test) {
   test.isTrue(t instanceof T, 'Expected t to be an instance of T');
   test.equal(t.a.name, 'a', 'Expected t#a to have a name property equal to "a"');
   test.equal(t.b.name, 'b', 'Expected t#b to have a name property equal to "b"');
+  test.isTrue(t.array === ioc.resolve('array'), 'Expected t#array to be the array installed');
 
   test.equal(childIoc._parentContainerInstances.length, 0, 'Expected no parent container instances to exist');
   let deps = childIoc._models.t.instances[0].deps;
-  test.equal(deps.length, 2, 'Expected t to have 2 deps');
+  test.equal(deps.length, 3, 'Expected t to have 3 deps');
   test.equal(deps[0].value.name, 'a', 'Expected first dep of t to be a');
   test.equal(deps[1].value.name, 'b', 'Expected second dep of t to be b');
+  test.equal(deps[2].value.join(','), '1,2,3,4', 'Expected third dep of t to be array');
 
   test.equal(ioc._models.a.instances.length, 1, 'Expected first IOC container to have one instance of a');
 
@@ -123,6 +127,6 @@ Tinytest.add('ioc parent container injection', function (test) {
 
   test.isUndefined(childIoc._models.t, 'Expected child IOC container to not have t installed');
   test.isUndefined(childIoc._models.b, 'Expected child IOC container to not have b installed');
-  test.isNull(childIoc._parentContainer, 'Expected parent container to be null');
+  test.isNull(childIoc.parentContainer, 'Expected parent container to be null');
   test.isUndefined(ioc._models.a, 'Expected first IOC container to not have a installed');
 });

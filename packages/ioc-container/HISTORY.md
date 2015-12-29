@@ -1,3 +1,12 @@
+# 0.1.1
+
+**Dec. 29, 2015**
+
+- Fix dependency injection for primitive types so that array values don't have
+  any dependencies injected and property name dependencies work as expected
+  now.
+
+
 # 0.1.0
 
 **Dec. 29, 2015**
