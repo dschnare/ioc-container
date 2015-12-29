@@ -127,18 +127,28 @@ configuration key, and will be set to the config key without the `$` prefix.
 
 ## IocContainer#resolve
 
-    resolve(name)
+    resolve(name, { initializing } = {})
 
 Attempts to resolve the named service. If the name starts with `$` then the
 config key without the `$` prefix will be looked up. If the resolution fails
 then an error is thrown.
+
+If the `initializing` callback is specified then this callback will be called
+before the instance's `initialize` method is called. This parameter is ignored
+when resolving config keys.
 
 **Example:**
 
     ioc.config.set('port', 3000);
     ioc.resolve('$port') // 3000
     ioc.install('a', { name: 'a', $port: null });
-    ioc.resolve('a'); // { name: 'a', $port: 3000 }
+    ioc.resolve('a', {
+      initializing: function (a) {
+        // do something to a or notify.
+        // called before a.initialize() is called and after
+        // dependency injection has occured.
+      }
+    }); // { name: 'a', $port: 3000 }
 
 
 ## IocConatiner#canResolve

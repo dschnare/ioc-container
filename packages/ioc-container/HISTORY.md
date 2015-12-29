@@ -1,3 +1,12 @@
+# 0.0.81
+
+**Dec. 29, 2015**
+
+- Add `initializing` callback parameter to `resolve()` so that the caller can
+  perform some pre-initializing work before an instance's `initialize` method
+  is called.
+
+
 # 0.0.8
 
 **Dec. 28, 2015**

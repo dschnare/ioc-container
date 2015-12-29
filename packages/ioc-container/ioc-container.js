@@ -113,7 +113,7 @@ IocContainer = class {
       (this.parentContainer && this.parentContainer.canResolve(name));
   }
 
-  resolve(name) {
+  resolve(name, { initializing } = {}) {
     try {
       // Resolve as config property.
       // Config properties can be referenced like '$propertyName'.
@@ -140,6 +140,10 @@ IocContainer = class {
           instance.value = handler();
           instances.push(instance);
           this._resolveStack.pop();
+
+          if (typeof initializing === 'function') {
+            initializing(instance.value);
+          }
 
           if (typeof instance.value.initialize === 'function') {
             instance.value.initialize();
