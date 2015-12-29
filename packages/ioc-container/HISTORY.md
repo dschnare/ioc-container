@@ -1,3 +1,11 @@
+# 0.1.0
+
+**Dec. 29, 2015**
+
+- Remove `initializing` callback parameter to `resolve()` and relpace it with
+  an `initializing` lifecycle concern.
+
+
 # 0.0.81
 
 **Dec. 29, 2015**

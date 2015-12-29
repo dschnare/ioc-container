@@ -113,7 +113,7 @@ IocContainer = class {
       (this.parentContainer && this.parentContainer.canResolve(name));
   }
 
-  resolve(name, { initializing } = {}) {
+  resolve(name) {
     try {
       // Resolve as config property.
       // Config properties can be referenced like '$propertyName'.
@@ -141,9 +141,7 @@ IocContainer = class {
           instances.push(instance);
           this._resolveStack.pop();
 
-          if (typeof initializing === 'function') {
-            initializing(instance.value);
-          }
+          this._applyLifecycleConcern(model, instance, 'initializing');
 
           if (typeof instance.value.initialize === 'function') {
             instance.value.initialize();
@@ -192,19 +190,21 @@ IocContainer = class {
     );
   }
 
-  addLifecycleConcern(nameOrPredicate, {create, destroy} = {}) {
+  addLifecycleConcern(nameOrPredicate, {initializing, create, destroy} = {}) {
     if (create || destroy) {
       if (typeof nameOrPredicate === 'string') {
         let name = nameOrPredicate;
         let model = this._models[name] = this._models[name] || {};
         let concerns = model.concerns = model.concerns || [];
         concerns.push({
+          initializing: typeof initializing == 'function' ? initializing : null,
           create: typeof create == 'function' ? create : null,
           destroy: typeof destroy == 'function' ? destroy : null
         });
       } else if (typeof nameOrPredicate === 'function') {
         this._predicatedConcerns.push({
           predicate: nameOrPredicate,
+          initializing: typeof initializing == 'function' ? initializing : null,
           create: typeof create == 'function' ? create : null,
           destroy: typeof destroy == 'function' ? destroy : null
         });

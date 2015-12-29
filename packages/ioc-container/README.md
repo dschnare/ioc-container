@@ -115,10 +115,18 @@ Primitive values will have no depedencies injected.
 Any formal parameter or property that starts with `$` is considered a
 configuration key, and will be set to the config key without the `$` prefix.
 
+All services can optionally define `initialize` and `destroy` methods that will
+be called after dependencies have been injected and when the service has been
+released respectively.
+
 **Example:**
 
     class MyClass {
       constructor(a, $port) { this.a = a; this.port = $port; }
+
+      initialize() {
+        console.log('MyClass#initialize');
+      }
     }
     ioc.config.set('port', 3000);
     ioc.install('myClass', MyClass, { newable: true })
@@ -127,28 +135,18 @@ configuration key, and will be set to the config key without the `$` prefix.
 
 ## IocContainer#resolve
 
-    resolve(name, { initializing } = {})
+    resolve(name)
 
 Attempts to resolve the named service. If the name starts with `$` then the
 config key without the `$` prefix will be looked up. If the resolution fails
 then an error is thrown.
-
-If the `initializing` callback is specified then this callback will be called
-before the instance's `initialize` method is called. This parameter is ignored
-when resolving config keys.
 
 **Example:**
 
     ioc.config.set('port', 3000);
     ioc.resolve('$port') // 3000
     ioc.install('a', { name: 'a', $port: null });
-    ioc.resolve('a', {
-      initializing: function (a) {
-        // do something to a or notify.
-        // called before a.initialize() is called and after
-        // dependency injection has occured.
-      }
-    }); // { name: 'a', $port: 3000 }
+    ioc.resolve('a'); // { name: 'a', $port: 3000 }
 
 
 ## IocConatiner#canResolve
@@ -198,10 +196,14 @@ set to null when the owning instance is released.
 
 ## IocContainer#addLifecycleConcern
 
-    addLifecycleConcern(nameOrPredicate, { create, destroy })
+    addLifecycleConcern(nameOrPredicate, { initializing, create, destroy })
 
 Adds a lifecycle concern that will be called during a lifecycle event either
 for a particular service or any service that satisfies the predicate.
+
+The `initializing` concern is called after a service has had its dependencies
+injected but before its `initialize` method has been called. This concern
+provides a mechanism to modify the instance or inspect the service's model.
 
 The `create` concern is called after a service has been initialized and
 provides a mechanism to modify the instance or inspect the service's model.
@@ -216,12 +218,15 @@ The service `model` is an object with the following shape.
       transient,
       handler(),
       instances: [{ value, deps, name }],
-      concerns?: [{ create, destroy }]
+      concerns?: [{ initializng, create, destroy }]
     }
 
 **Example:**
 
     ioc.addLifecycleConcern('myClass', {
+      initializing(instance, model) {
+        // notify others or do stuff to intance
+      },
       create(instance, model) {
         // do stuff to the instance or inspect the model.
       },
