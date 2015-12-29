@@ -90,7 +90,7 @@ IocContainer = class {
     this.install('$config', () => this.config.valueOf());
   }
 
-  install(name, obj, {transient, newable} = {}) {
+  install(name, obj, {transient, newable, concerns} = {}) {
     let model = this._models[name] = this._models[name] || {};
     model.instances = [];
     model.transient = !!transient;
@@ -104,6 +104,10 @@ IocContainer = class {
       model.handler = () => this.inject(Object.create(obj));
     } else {
       model.handler = () => obj;
+    }
+
+    if (concerns) {
+      this.addLifecycleConcern(name, concerns);
     }
   }
 
@@ -191,7 +195,7 @@ IocContainer = class {
   }
 
   addLifecycleConcern(nameOrPredicate, {initializing, create, destroy} = {}) {
-    if (create || destroy) {
+    if (initializing || create || destroy) {
       if (typeof nameOrPredicate === 'string') {
         let name = nameOrPredicate;
         let model = this._models[name] = this._models[name] || {};

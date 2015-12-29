@@ -87,7 +87,7 @@ into the parent container if the resolution fails using this own container.
 
 ## IocContainer#install
 
-    install(name, obj, { transient, newable })
+    install(name, obj, { newable, transient, concerns })
 
 Installs a new service that can be resolved with the specified name.
 The obj can be a function, object or primitive value. If an object then
@@ -102,6 +102,10 @@ instance is returned each time `resolve()` is called. If the `transient`
 option is set then a new instance will be created each time `resolve()` is
 called.
 
+The opional `concerns` parameter is an object used to register lifecycle
+concerns by calling `addLifecycleConcern()`. For information on adding
+lifecycle concerns see the docs on this method.
+
 All services will have their dependencies injected automatically. For functions
 the names of their formal parameters will be used as dependency names. If a
 formal argument results with no service being found an error will be thrown.
@@ -110,7 +114,7 @@ For objects and the return value of functions, property names will be used as
 dependency names only if they are set to `null`. Properties starting with `_`
 are skipped over.
 
-Primitive values will have no depedencies injected.
+Primitive values and arrays will have no depedencies injected.
 
 Any formal parameter or property that starts with `$` is considered a
 configuration key, and will be set to the config key without the `$` prefix.

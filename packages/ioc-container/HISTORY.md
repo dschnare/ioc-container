@@ -1,3 +1,19 @@
+# 0.1.3
+
+**Dec. 29, 2015**
+
+- Add `concerns` parameter to `install()` for convenience so that concerns can
+  be added at the same time the service is installed.
+
+
+# 0.1.2
+
+**Dec. 29, 2015**
+
+- Fix issue with adding `initializing` lifecycle concern. The concern was being
+  ignored.
+
+
 # 0.1.1
 
 **Dec. 29, 2015**

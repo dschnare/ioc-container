@@ -74,10 +74,10 @@ Tinytest.add('ioc container injection and release', function (test) {
 
 Tinytest.add('ioc parent container injection', function (test) {
   class T {
-    constructor(a, b, array) {
+    constructor(a, b) {
       this.a = a;
       this.b = b;
-      this.array = array;
+      this.array = null;
     }
   }
 
@@ -89,6 +89,8 @@ Tinytest.add('ioc parent container injection', function (test) {
   childIoc.install('b', { name: 'b' });
 
   childIoc.install('t', T, { newable: true });
+
+  test.isTrue(childIoc.canResolve('array'), 'Expected child IOC container to be able to resolve "array"');
 
   let t = childIoc.resolve('t');
   test.isTrue(t instanceof T, 'Expected t to be an instance of T');
