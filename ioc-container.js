@@ -39,15 +39,15 @@ if (Meteor.isClient) {
     // install myObj, but mark it as transient (i.e. not a singleton).
     // a new instance of myObj will be created each time myObj is resolved
     // since we installed it as transient.
-    // NOTE: installed objects will be extended via Object.create() when
-    // new instances are created.
-    ioc.install('myObj', myObj, { transient: true });
+    ioc.install('myObj', ($port, myClass, myOtherClass) => {
+      let obj = Object.create(myObj);
+      obj.poprt = $port;
+      obj.myClass = myClass;
+      obj.myOtherClass = myOtherClass;
+      return obj;
+    }, { transient: true });
 
     let obj = ioc.resolve('myObj');
-
-    // NOTE: We could have managed obj ourselves by injecting manually...
-    // let obj = ioc.inject(Object.create(myObj));
-    // Then we would have to release its dependencies manually as well.
 
     // now I'm done with obj...
     ioc.release(obj);

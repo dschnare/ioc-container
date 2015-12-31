@@ -1,3 +1,16 @@
+# 0.2.0
+
+**Dec. 30, 2015**
+
+- Add `deps` parameter to `inject()` to accommodate obfuscated code.
+
+- Add `inject` parameter to `install()` to accommodate obfuscated code.
+
+- Deprecate automatic property dependency injection. This will end in messy
+  array access notation code if code is obfuscated. Dependencies can only be
+  injected into functions.
+
+
 # 0.1.3
 
 **Dec. 29, 2015**

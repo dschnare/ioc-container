@@ -1,11 +1,11 @@
 /*global Tinytest*/
 Tinytest.add('ioc container injection and release', function (test) {
   class T {
-    constructor(a, b, c) {
+    constructor(a, b, c, thePort) {
       this.a = a;
       this.b = b;
       this.c = c;
-      this.$port = null;
+      this.port = thePort;
     }
 
     initialize() {
@@ -37,14 +37,14 @@ Tinytest.add('ioc container injection and release', function (test) {
     }
   }, { transient: true, newable: true });
 
-  ioc.install('t', T, { transient: true, newable: true });
+  ioc.install('t', T, { transient: true, newable: true, inject: ['a', 'b', 'c', '$port'] });
   let t = ioc.resolve('t');
 
   test.equal(t.a.name, 'a', 'Expected t#a to have a name equal to "a"');
   test.equal(t.b.name, 'b', 'Expected t#b to have a name equal to "b"');
   test.equal(t.c.name, 'c', 'Expected t#c to have a name equal to "c"');
   test.isTrue(t.c.a === t.a, 'Expected t#c#a to be the same object as t#a');
-  test.equal(t.$port, '3000', 'Expected t#$port to be "3000"');
+  test.equal(t.port, '3000', 'Expected t#port to be "3000"');
 
   test.isTrue(t.isInitialized, 'Expected to t#initialize to be called');
   test.isFalse(t.a.isInitialized, 'Expected to t#a#initialize to be called');
@@ -74,10 +74,10 @@ Tinytest.add('ioc container injection and release', function (test) {
 
 Tinytest.add('ioc parent container injection', function (test) {
   class T {
-    constructor(a, b) {
+    constructor(a, b, array) {
       this.a = a;
       this.b = b;
-      this.array = null;
+      this.array = array;
     }
   }
 

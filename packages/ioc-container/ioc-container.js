@@ -90,18 +90,18 @@ IocContainer = class {
     this.install('$config', () => this.config.valueOf());
   }
 
-  install(name, obj, {transient, newable, concerns} = {}) {
+  install(name, obj, {transient, newable, concerns, inject} = {}) {
     let model = this._models[name] = this._models[name] || {};
     model.instances = [];
     model.transient = !!transient;
     model.newable = !!newable;
 
     if (typeof obj === 'function' && !!newable) {
-      model.handler = () => this.injectNewable(obj);
+      model.handler = () => this.injectNewable(obj, { deps: inject });
     } else if (typeof obj === 'function') {
-      model.handler = () => this.inject(obj);
+      model.handler = () => this.inject(obj, { deps: inject });
     } else if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-      model.handler = () => this.inject(Object.create(obj));
+      model.handler = () => Object.create(obj);
     } else {
       model.handler = () => obj;
     }
@@ -216,44 +216,29 @@ IocContainer = class {
     }
   }
 
-  // inject(fn)
-  // inject(obj)
-  // {private} inject(fn, wrapper)
-  inject(fn, wrapper = null) {
-    let obj = fn;
-    let deps = [];
-
-    // NOTE: This will only work for browsers and environments
-    // that allow function inspection.
+  // inject(fn, { deps })
+  // {private} inject(fn, { deps, wrapper })
+  inject(fn, { deps, wrapper } = {}) {
     if (typeof fn === 'function') {
-      deps = functionToString.call(fn)
-        .match(/function[^(]+\(([^)]*)\)/)[1]
-        .split(',').map((s) => s.replace(/^\s+|\s+$/, ''));
-
-      if (!(deps.length === 1 && deps[0] === '')) {
-        let resolvedDeps = deps.map(this.resolve.bind(this));
-        obj = wrapper ? wrapper(fn, ...resolvedDeps) : fn(...resolvedDeps);
-      } else {
-        obj = wrapper ? wrapper(fn) : fn();
-      }
-    }
-
-    if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-      for (let key in obj) {
-        if (key.charAt(0) !== '_' &&
-          obj[key] === null &&
-          deps.indexOf(key) < 0 &&
-          this.canResolve(key)) {
-          obj[key] = this.resolve(key);
+      if (fn.length > 0) {
+        if (!Array.isArray(deps)) {
+          deps = functionToString.call(fn)
+            .match(/function[^(]+\(([^)]*)\)/)[1]
+            .split(',').map((s) => s.replace(/^\s+|\s+$/, ''));
         }
+
+        let resolvedDeps = deps.map(this.resolve.bind(this)).slice(0, fn.length);
+        return wrapper ? wrapper(fn, ...resolvedDeps) : fn(...resolvedDeps);
+      } else {
+        return wrapper ? wrapper(fn) : fn();
       }
     }
 
-    return obj;
+    return fn;
   }
 
-  injectNewable(Newable) {
-    return this.inject(Newable, variadicNew);
+  injectNewable(Newable, { deps } = {}) {
+    return this.inject(Newable, { deps: deps, wrapper: variadicNew });
   }
 
   dispose() {
@@ -348,7 +333,7 @@ IocContainer = class {
 
             while (instance.deps.length) {
               let dep = instance.deps.pop();
-              instance.value[dep.name] = null;
+              if (dep.name in instance.value) instance.value[dep.name] = null;
               for (let key in instance.value) {
                 if (instance.value[key] === dep.value) {
                   instance.value[key] = null;
