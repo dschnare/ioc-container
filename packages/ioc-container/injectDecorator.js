@@ -32,11 +32,9 @@ function injectDecoratorES7(deps) {
     // A function or constructor
     } else if (typeof target === 'function') {
       target.inject = deps;
-      return target;
     }
 
-    throw new Error('inject decorator can only be used on functions and' +
-      ' property descriptors.');
+    return target;
   };
 }
 
