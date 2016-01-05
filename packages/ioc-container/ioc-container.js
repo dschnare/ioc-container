@@ -97,9 +97,9 @@ IocContainer = class {
     model.newable = !!newable;
 
     if (typeof obj === 'function' && !!newable) {
-      model.handler = () => this.injectNewable(obj, { deps: inject });
+      model.handler = () => this.injectNewable(obj, { deps: inject || obj.inject });
     } else if (typeof obj === 'function') {
-      model.handler = () => this.inject(obj, { deps: inject });
+      model.handler = () => this.inject(obj, { deps: inject || obj.inject });
     } else if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
       model.handler = () => Object.create(obj);
     } else {
@@ -220,6 +220,8 @@ IocContainer = class {
   // {private} inject(fn, { deps, wrapper })
   inject(fn, { deps, wrapper } = {}) {
     if (typeof fn === 'function') {
+      deps = deps || fn.inject;
+
       if (fn.length > 0) {
         if (!Array.isArray(deps)) {
           deps = functionToString.call(fn)
