@@ -43,6 +43,7 @@ if (Meteor.isClient) {
     // install myObj, but mark it as transient (i.e. not a singleton).
     // a new instance of myObj will be created each time myObj is resolved
     // since we installed it as transient.
+<<<<<<< HEAD
     ioc.factory('myObj', ($port, myClass, myOtherClass) => {
       let obj = Object.create(myObj);
       obj.port = $port;
@@ -53,6 +54,15 @@ if (Meteor.isClient) {
       inject: [ '$port', 'myClass', 'myOtherClass' ],
       transient: true
     });
+=======
+    ioc.install('myObj', ($port, myClass, myOtherClass) => {
+      let obj = Object.create(myObj);
+      obj.poprt = $port;
+      obj.myClass = myClass;
+      obj.myOtherClass = myOtherClass;
+      return obj;
+    }, { transient: true });
+>>>>>>> 190fdba4c61162ec58271c2b50a4ab658dec396a
 
     let obj = ioc.resolve('myObj');
 

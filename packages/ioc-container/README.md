@@ -212,6 +212,15 @@ be injected.
       numbers: [1, 2, 3, 4]
     });
 
+    // Alternatively we can specify the dependencies we want to be
+    // injected into MyClass when it's resolved. This would be necessary
+    // if your code were to be obfuscated.
+    ioc.install('myClass', MyClass, { newable: true, inject: ['a', '$port'] });
+    // 'a' can have its properties injected as well in the same fashion.
+    ioc.install('a', ($port) => {
+      return { name: 'a', port: $port };
+    }, { transient: true, inject: ['$port'] });
+
 ## IocContainer#resolve
 
     resolve(name)
