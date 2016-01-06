@@ -13,7 +13,10 @@ Create a new project
 Now open `ioc-proj.js` and replace the contents of that file with this quick start.
 
     if (Meteor.isClient) {
+      // A quick test
       class MyClass {
+        static inject() { return ['myOtherClass', '$port']; }
+
         constructor(myOtherClass, $port) {
           this._myOtherClass = myOtherClass;
           this.port = $port;
@@ -21,20 +24,22 @@ Now open `ioc-proj.js` and replace the contents of that file with this quick sta
       }
 
       class MyOtherClass {
+        static inject() { return ['$port']; }
+
         constructor($port) {
           this._port = $port;
         }
       }
 
       let myObj = {
-        $port: null,
+        port: null,
         myOtherClass: null,
         myClass: null,
         initialize() {
-          console.log('myObj#initialize()', this.$port, this.myOtherClass, this.myClass);
+          console.log('myObj#initialize()', this.port, this.myOtherClass, this.myClass);
         },
         destroy() {
-          // do stuff to destroy myself like removing event listeners
+          // do stuff to destroy myself like removing event listeners.
           // myOtherClass and myClass will automatically be nulled out for us.
           console.log('myObj#destroy()');
         }
@@ -43,33 +48,31 @@ Now open `ioc-proj.js` and replace the contents of that file with this quick sta
       Template.hello.onCreated(function () {
         let ioc = new IocContainer();
         ioc.config.set('port', 3000);
-        // intall MyClass and MyOtherClass as singletons, also
-        // since these are constructors we have to mark them as newable
-        // (i.e. the new operator must be used to create new instances).
-        ioc.install('myClass', MyClass, { newable: true });
-        ioc.install('myOtherClass', MyOtherClass, { newable: true });
-        // install myObj, but mark it as transient (i.e. not a singleton).
-        // a new instance of myObj will be created each time myObj is resolved
-        // since we installed it as transient.
-        // NOTE: installed objects will be extended via Object.create() when
-        // new instances are created.
-        ioc.install('myObj', myObj, { transient: true });
+
+        ioc.service('myClass', MyClass);
+        ioc.service('myOtherClass', MyOtherClass);
+
+        ioc.factory('myObj', ($port, myClass, myOtherClass) => {
+          let obj = Object.create(myObj);
+          obj.port = $port;
+          obj.myClass = myClass;
+          obj.myOtherClass = myOtherClass;
+          return obj;
+        }, {
+          inject: [ '$port', 'myClass', 'myOtherClass' ],
+          transient: true,
+          initializable: true,
+          destroyable: true
+        });
 
         let obj = ioc.resolve('myObj');
-
-        // NOTE: We could have managed obj ourselves by injecting manually...
-        // let obj = ioc.inject(Object.create(myObj));
-        // Then we would have to release its dependencies manually as well.
 
         // now I'm done with obj...
         ioc.release(obj);
 
-        // or I can dispose the entire IOC container...
+        // or I can dispose the entire IOC container,
+        // releasing all service instances along with it.
         ioc.dispose();
-        // releasing all instances, including singletons.
-        // singletons are only released when the IOC container managing them
-        // is disposed (i.e. they exist as long as the IOC container that manges them
-        // exists).
       });
     }
 
@@ -85,57 +88,129 @@ conatiner. If a parent container is specified then `resolve()` will traverse
 into the parent container if the resolution fails using this own container.
 
 
-## IocContainer#install
+## IocContainer#service
 
-    install(name, obj, { newable, transient, concerns })
+    service(name, Ctor, { transient, concerns, inject, initializable, destroyable })
 
-Installs a new service that can be resolved with the specified name.
-The obj can be a function, object or primitive value. If an object then
-`Object.create()` is used to create new instances. If a function then the
-function will be called normally unless the `newable` option is specified. If
-`newable` is set then the `new` operator will be used when calling the
-function. If a primitive value then the value will be resolved as-is
-(i.e. returned without modification).
+Installs a new service that can be resolved with the specified name. The
+service has to be a constructor function.
 
 All services are singletons, that is they are only created once and the same
-instance is returned each time `resolve()` is called. If the `transient`
-option is set then a new instance will be created each time `resolve()` is
-called.
+instance is returned each time `resolve()` asks for them. If the `transient`
+option is set then a new instance will be created each time `resolve()` asks
+for them.
 
 The opional `concerns` parameter is an object used to register lifecycle
 concerns by calling `addLifecycleConcern()`. For information on adding
 lifecycle concerns see the docs on this method.
 
-All services will have their dependencies injected automatically. For functions
-the names of their formal parameters will be used as dependency names. If a
-formal argument results with no service being found an error will be thrown.
+The optional `inject` parameter is an array of dependency names that will be
+injected into the service. The order of the dependency names is important,
+since function arguments are injected in the order they appear. Without this
+parameter, dependency names are inferred automatically by inspecting the formal
+parameter names of the constructor. Any dependency name that starts with `$`
+will have the value of the config key without the `$` prefix injected. This
+parameter is useful if your code is obfuscated.
 
-For objects and the return value of functions, property names will be used as
-dependency names only if they are set to `null`. Properties starting with `_`
-are skipped over.
-
-Primitive values and arrays will have no depedencies injected.
-
-Any formal parameter or property that starts with `$` is considered a
-configuration key, and will be set to the config key without the `$` prefix.
+In addition to the `inject` parameter an `inject` array property or function on
+the constructor (i.e. static) can be sepcified. However the `inject` parameter
+will take precedence.
 
 All services can optionally define `initialize` and `destroy` methods that will
-be called after dependencies have been injected and when the service has been
-released respectively.
+be called if the `initializable` and `destroyable` parameters are set to
+`true`. `initialize` will be called after the service has been constructed and
+`destroy` will be called after the service has been released.
 
 **Example:**
 
-    class MyClass {
-      constructor(a, $port) { this.a = a; this.port = $port; }
+    ioc.service('myService', class {
+      constructor(a, b, port) {
+        this.a = a;
+        this.b = b;
+        this.port = port;
+      }
 
       initialize() {
-        console.log('MyClass#initialize');
+        /* use this.a, this.b and this.port */
       }
-    }
-    ioc.config.set('port', 3000);
-    ioc.install('myClass', MyClass, { newable: true })
-    ioc.install('a', { name: 'a', $port: null }, { transient: true });
-    let myClass = ioc.resolve('myClass');
+
+      destroy() {
+      }
+    }, {
+      /* '$' prefixed dependencies are config keys */
+      inject: ['a', 'b', '$port'],
+      initializable: true,
+      destroyable: true
+    })
+
+
+## IocContainer#factory
+
+    factory(name, fn, { transient, concerns, inject, initializable, destroyable })
+
+Installs a new service that can be resolved with the specified name. The
+service has to be a factory function.
+
+All services are singletons, that is they are only created once and the same
+instance is returned each time `resolve()` asks for them. If the `transient`
+option is set then a new instance will be created each time `resolve()` asks
+for them.
+
+The opional `concerns` parameter is an object used to register lifecycle
+concerns by calling `addLifecycleConcern()`. For information on adding
+lifecycle concerns see the docs on this method.
+
+The optional `inject` parameter is an array of dependency names that will be
+injected into the service. The order of the dependency names is important,
+since function arguments are injected in the order they appear. Without this
+parameter, dependency names are inferred automatically by inspecting the formal
+parameter names of the function. Any dependency name that starts with `$`
+will have the value of the config key without the `$` prefix injected. This
+parameter is useful if your code is obfuscated.
+
+In addition to the `inject` parameter an `inject` array property or function on
+the function (i.e. static) can be sepcified. However the `inject` parameter
+will take precedence.
+
+All services can optionally define `initialize` and `destroy` methods that will
+be called if the `initializable` and `destroyable` parameters are set to
+`true`. `initialize` will be called after the service has been constructed and
+`destroy` will be called after the service has been released.
+
+**Example:**
+
+    ioc.factory('myService', function(a, b, port) {
+      return {
+        initialize() {
+          /* use a, b and port */
+        },
+
+        destroy() {
+        }
+      };
+    }, {
+      /* '$' prefixed dependencies are config keys */
+      inject: ['a', 'b', '$port'],
+      /* not a singleton */
+      transient: true,
+      initializable: true,
+      destroyable: true
+    })
+
+## IocContainer#constant
+
+    constant(name, value)
+
+Installs a new service that can be resolved with the specified name. The
+service can be any value and it will be retrieved as-is. No dependencies will
+be injected.
+
+**Example:**
+
+    ioc.constant('version', '1.0.1');
+    ioc.constant('myValue', {
+      numbers: [1, 2, 3, 4]
+    });
 
 ## IocContainer#resolve
 
@@ -145,12 +220,20 @@ Attempts to resolve the named service. If the name starts with `$` then the
 config key without the `$` prefix will be looked up. If the resolution fails
 then an error is thrown.
 
+The special `$config` service returns a copy of the entire config object
+containing all keys.
+
 **Example:**
 
     ioc.config.set('port', 3000);
     ioc.resolve('$port') // 3000
-    ioc.install('a', { name: 'a', $port: null });
-    ioc.resolve('a'); // { name: 'a', $port: 3000 }
+
+    ioc.factory('a', function (port) {
+      return { name: 'a', port: port };
+    }, { inject: ['$port'] });
+    ioc.resolve('a'); // { name: 'a', port: 3000 }
+
+    ioc.resolve('$config'); // { all config keys }
 
 
 ## IocConatiner#canResolve
@@ -176,16 +259,21 @@ set to null when the owning instance is released.
 
 **Example:**
 
-    ioc.install('a', {
-      name: 'a',
-      initCount: 0,
+    ioc.service('a', class {
+      constructor() {
+        this.name: 'a';
+        this.initCount: 0;
+      }
+
       initialize() {
         this.initCount += 1;
       }
-    }) // singleton
-    ioc.install('b', {
-      name: 'b',
-      a: null,
+    }, { initializable: true }) // singleton
+    ioc.factory('b', (a) => {
+      return {
+        name: 'b',
+        a: a
+      };
     }, { transient: true }); // transient
 
     let b = ioc.resolve('b'); // { name: 'b', a: { name: 'a', initCount: 1 } }
@@ -229,7 +317,7 @@ The service `model` is an object with the following shape.
 
     ioc.addLifecycleConcern('myClass', {
       initializing(instance, model) {
-        // notify others or do stuff to intance
+        // notify others or do stuff to instance
       },
       create(instance, model) {
         // do stuff to the instance or inspect the model.
@@ -248,38 +336,52 @@ The service `model` is an object with the following shape.
 
 ## IocContainer#inject
 
-    inject(obj)
+    inject(obj, { deps })
 
 Attempts to inject the dependencies of the object. If the object is a function
 then the formal parameter names are used as dependency names when calling
-`resolve()`. For the return value of the function or objects, property
-names that have a value of `null` and are not prefixed with `_` are used as
-dependency names when calling `resolve()`. If a dependency cannot be found then
-an error is thrown.
+`resolve()`. If a dependency cannot be found then an error is thrown.
+
+The optional `deps` parameter is an array of dependency names  that will be
+injected into the object. The order of the dependency names is important,
+since function arguments are injected in the order they appear. Without
+this parameter, dependency names are inferred automatically by inspecting the
+formal parameter names of the function.
+
+In addition to the `deps` parameter an `inject` array property or function on
+the function (i.e. static) can be sepcified. However the `deps` parameter
+will take precedence.
 
 **Example:**
 
     ioc.config.set('port', 3000);
-    ioc.install('a', { name: 'a' });
-    let o ioc.inject(function (a, $port) {
+    ioc.constant('a', { name: 'a' });
+    let o = ioc.inject(function (a, $port) {
       return { a: a, port: $port };
     }); // { a: { name: 'a' }, port: 3000 }
+
+    // Using explicit dependency names in case our code is obfuscated.
+    let o = ioc.inject(function (a, port) {
+      return { a: a, port: port };
+    }, { deps: ['a', '$port'] }); // { a: { name: 'a' }, port: 3000 }
 
 
 ## IocContainer#injectNewable
 
-    injectNewable(Ctor)
+    injectNewable(Ctor, { deps })
 
 Same as `inject()`, but accepts a constructor.
 
 **Example:**
 
     ioc.config.set('port', 3000);
-    ioc.install('a', { name: 'a' });
+    ioc.constant('a', { name: 'a' });
     class T {
-      constructor(a, $port) {
+      static inject() { return ['a', '$port']; }
+
+      constructor(a, port) {
         this.a = a;
-        this.port = $port;
+        this.port = port;
       }
     }
     let t = ioc.injectNewable(T);

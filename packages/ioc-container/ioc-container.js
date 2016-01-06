@@ -87,28 +87,66 @@ IocContainer = class {
       });
     }
 
-    this.install('$config', () => this.config.valueOf());
+    this.factory('$config', () => this.config.valueOf());
   }
 
-  install(name, obj, {transient, newable, concerns} = {}) {
+  service(name, Ctor, {transient, concerns, inject, initializable, destroyable} = {}) {
+    if (typeof Ctor !== 'function') throw new Error('Constructor needs to be a function.');
+
     let model = this._models[name] = this._models[name] || {};
     model.instances = [];
     model.transient = !!transient;
-    model.newable = !!newable;
+    model.service = true;
+    model.factory = false;
+    model.constant = false;
+    model.initializable = !!initializable;
+    model.destroyable = !!destroyable;
 
-    if (typeof obj === 'function' && !!newable) {
-      model.handler = () => this.injectNewable(obj);
-    } else if (typeof obj === 'function') {
-      model.handler = () => this.inject(obj);
-    } else if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-      model.handler = () => this.inject(Object.create(obj));
-    } else {
-      model.handler = () => obj;
-    }
+    inject = inject ||
+      (typeof Ctor.inject === 'function' ? Ctor.inject() : Ctor.inject);
+
+    model.handler = () => this.injectNewable(Ctor, { deps: inject });
 
     if (concerns) {
       this.addLifecycleConcern(name, concerns);
     }
+  }
+
+  factory(name, fn, {transient, concerns, inject, initializable, destroyable} = {}) {
+    if (typeof fn !== 'function') throw new Error('Factory needs to be a function.');
+
+    let model = this._models[name] = this._models[name] || {};
+    model.instances = [];
+    model.transient = !!transient;
+    model.service = false;
+    model.factory = true;
+    model.constant = false;
+    model.initializable = !!initializable;
+    model.destroyable = !!destroyable;
+
+    inject = inject ||
+      (typeof fn.inject === 'function' ? fn.inject() : fn.inject);
+
+    model.handler = () => this.inject(fn, { deps: inject });
+
+    if (concerns) {
+      this.addLifecycleConcern(name, concerns);
+    }
+  }
+
+  constant(name, obj) {
+    let model = this._models[name] = this._models[name] || {};
+    model.instances = [];
+    model.transient = false;
+    model.newable = false;
+    model.constant = true;
+    model.initializable = false;
+    model.destroyable = false;
+    model.handler = () => obj;
+  }
+
+  install(name, obj, {transient, newable, concerns, inject} = {}) {
+    throw new Error('IocContainer#install() is deprecated. Use service(), factory() or constant().');
   }
 
   canResolve(name) {
@@ -123,10 +161,14 @@ IocContainer = class {
       // Config properties can be referenced like '$propertyName'.
       // This is just a shorthand for resolving properties like this:
       // ioc.config.get('propertyName');
-      if (name.indexOf('$') === 0) {
+      //
+      // $config is a special service that is the entire config object.
+      if (name.indexOf('$') === 0 && name !== '$config') {
         let value = this.config.get(name.substr(1));
         if (value === undefined) {
-          throw new Error(`Config property "${name.substr(1)}" not found.`);
+          let error = new Error(`Config property "${name.substr(1)}" not found.`);
+          error.name = 'NotFound';
+          throw error;
         }
         return value;
       }
@@ -147,7 +189,8 @@ IocContainer = class {
 
           this._applyLifecycleConcern(model, instance, 'initializing');
 
-          if (typeof instance.value.initialize === 'function') {
+          if (model.initializable &&
+            typeof instance.value.initialize === 'function') {
             instance.value.initialize();
           }
 
@@ -160,9 +203,13 @@ IocContainer = class {
 
         return instance.value;
       } else {
-        throw new Error(`Service "${name}" not found.`);
+        let error = new Error(`Service "${name}" not found.`);
+        error.name = 'NotFound';
+        throw error;
       }
     } catch (error) {
+      // If the error is not one of our own then rethrow it.
+      if (error.name !== 'NotFound') throw error;
       // If we have a parent IOC Container then we relay this
       // resolve call to them, otherwise we rethrow the error.
       if (this.parentContainer) {
@@ -216,44 +263,31 @@ IocContainer = class {
     }
   }
 
-  // inject(fn)
-  // inject(obj)
-  // {private} inject(fn, wrapper)
-  inject(fn, wrapper = null) {
-    let obj = fn;
-    let deps = [];
-
-    // NOTE: This will only work for browsers and environments
-    // that allow function inspection.
+  // inject(fn, { deps })
+  // {private} inject(fn, { deps, wrapper })
+  inject(fn, { deps, wrapper } = {}) {
     if (typeof fn === 'function') {
-      deps = functionToString.call(fn)
-        .match(/function[^(]+\(([^)]*)\)/)[1]
-        .split(',').map((s) => s.replace(/^\s+|\s+$/, ''));
-
-      if (!(deps.length === 1 && deps[0] === '')) {
-        let resolvedDeps = deps.map(this.resolve.bind(this));
-        obj = wrapper ? wrapper(fn, ...resolvedDeps) : fn(...resolvedDeps);
-      } else {
-        obj = wrapper ? wrapper(fn) : fn();
-      }
-    }
-
-    if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-      for (let key in obj) {
-        if (key.charAt(0) !== '_' &&
-          obj[key] === null &&
-          deps.indexOf(key) < 0 &&
-          this.canResolve(key)) {
-          obj[key] = this.resolve(key);
+      if (fn.length > 0) {
+        deps = deps || (typeof fn.inject === 'function' ?
+          fn.inject() : fn.inject);
+        if (!Array.isArray(deps)) {
+          deps = functionToString.call(fn)
+            .match(/function[^(]+\(([^)]*)\)/)[1]
+            .split(',').map((s) => s.replace(/^\s+|\s+$/, ''));
         }
+
+        let resolvedDeps = deps.map(this.resolve.bind(this)).slice(0, fn.length);
+        return wrapper ? wrapper(fn, ...resolvedDeps) : fn(...resolvedDeps);
+      } else {
+        return wrapper ? wrapper(fn) : fn();
       }
     }
 
-    return obj;
+    return fn;
   }
 
-  injectNewable(Newable) {
-    return this.inject(Newable, variadicNew);
+  injectNewable(Newable, { deps } = {}) {
+    return this.inject(Newable, { deps: deps, wrapper: variadicNew });
   }
 
   dispose() {
@@ -341,14 +375,17 @@ IocContainer = class {
               instance.release();
             } else {
               this._applyLifecycleConcern(model, instance, 'destroy');
-              if (typeof instance.value.destroy === 'function') {
+
+              if (model.destroyable &&
+                typeof instance.value.destroy === 'function') {
+
                 instance.value.destroy();
               }
             }
 
             while (instance.deps.length) {
               let dep = instance.deps.pop();
-              instance.value[dep.name] = null;
+              if (dep.name in instance.value) instance.value[dep.name] = null;
               for (let key in instance.value) {
                 if (instance.value[key] === dep.value) {
                   instance.value[key] = null;

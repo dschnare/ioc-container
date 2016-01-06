@@ -2,6 +2,8 @@
 if (Meteor.isClient) {
   // A quick test
   class MyClass {
+    static inject() { return ['myOtherClass', '$port']; }
+
     constructor(myOtherClass, $port) {
       this._myOtherClass = myOtherClass;
       this.port = $port;
@@ -9,17 +11,19 @@ if (Meteor.isClient) {
   }
 
   class MyOtherClass {
+    static inject() { return ['$port']; }
+
     constructor($port) {
       this._port = $port;
     }
   }
 
   let myObj = {
-    $port: null,
+    port: null,
     myOtherClass: null,
     myClass: null,
     initialize() {
-      console.log('myObj#initialize()', this.$port, this.myOtherClass, this.myClass);
+      console.log('myObj#initialize()', this.port, this.myOtherClass, this.myClass);
     },
     destroy() {
       // do stuff to destroy myself like removing event listeners.
@@ -34,20 +38,23 @@ if (Meteor.isClient) {
     // intall MyClass and MyOtherClass as singletons, also
     // since these are constructors we have to mark them as newable
     // (i.e. the new operator must be used to create new instances).
-    ioc.install('myClass', MyClass, { newable: true });
-    ioc.install('myOtherClass', MyOtherClass, { newable: true });
+    ioc.service('myClass', MyClass);
+    ioc.service('myOtherClass', MyOtherClass);
     // install myObj, but mark it as transient (i.e. not a singleton).
     // a new instance of myObj will be created each time myObj is resolved
     // since we installed it as transient.
-    // NOTE: installed objects will be extended via Object.create() when
-    // new instances are created.
-    ioc.install('myObj', myObj, { transient: true });
+    ioc.factory('myObj', ($port, myClass, myOtherClass) => {
+      let obj = Object.create(myObj);
+      obj.port = $port;
+      obj.myClass = myClass;
+      obj.myOtherClass = myOtherClass;
+      return obj;
+    }, {
+      inject: [ '$port', 'myClass', 'myOtherClass' ],
+      transient: true
+    });
 
     let obj = ioc.resolve('myObj');
-
-    // NOTE: We could have managed obj ourselves by injecting manually...
-    // let obj = ioc.inject(Object.create(myObj));
-    // Then we would have to release its dependencies manually as well.
 
     // now I'm done with obj...
     ioc.release(obj);

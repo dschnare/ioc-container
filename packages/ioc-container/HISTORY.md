@@ -1,3 +1,91 @@
+# 1.0.0
+
+**Jan. 5, 2016**
+
+refactor(install) Split install method into three methods
+
+Refactor install() to be three separate methods, service(), factory() and
+constant(). The reason for this was because it was getting hard to keep in mind
+all the side affects of install() with all the different arguments accepted.
+
+Each method now also looks for an inject array property or method on the
+service constructor or factory function. If one does not exist then uses the
+inject array argument passed to the function.
+
+Each method also accepts options that determine if the service instance is
+initializable (an initialize method should be called if it exists) and
+destroyable (a destroy method should be called if it exists). By default
+service instances will not have their initialize or destroy methods called
+without setting these options to true. This was done this way to support
+factory methods returning objects that have their own initialize and/or destroy
+methods that must not be called (i.e. initialize being called multiple times
+causing an error to be thrown). With these options service authors now have
+more control over whether their service instances will have their initialize
+or destroy methods called.
+
+BREAKING CHANGE: Services can no longer be installed by calling install(). As
+a workaround use service() to install constructors, factory() to install
+functions and constant() to install any other value.
+
+Also service instances will no longer have the initialize and destroy methods
+called without the initializable and destroyable options being set to true when
+registering the service via service() or factory().
+
+Before
+
+    ioc.install('serviceA', class {
+      constructor() {}
+      initialize() {}
+      destroy() {}
+    }, { newable: true })
+
+    ioc.install('serviceB', function () {
+      return {
+        initialize() {},
+        destroy() {}
+      }
+    })
+
+    ioc.install('serviceC', {
+      initialize() {},
+      destroy() {}
+    })
+
+After
+
+    ioc.service('serviceA', class {
+      constructor() {}
+      initialize() {}
+      destroy() {}
+    }, { initializable: true, destroyable: true })
+
+    ioc.factory('serviceB', function () {
+      return {
+        initialize() {},
+        destroy() {}
+      }
+    }, { initializable: true, destroyable: true })
+
+    ioc.constant('serviceC', {
+      initialize() {}, /* won't be called */
+      destroy() {} /* won't be called */
+    })
+
+
+
+# 0.2.0
+
+**Dec. 30, 2015**
+
+- Add `deps` parameter to `inject()` to accommodate obfuscated code.
+
+- Add `inject` parameter to `install()` to accommodate obfuscated code.
+
+- Deprecate automatic property dependency injection. This will end in messy
+  array access notation code if code is obfuscated. Dependencies can only be
+  injected into functions.
+
+
 # 0.1.3
 
 **Dec. 29, 2015**
