@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ES6"
   },
-  "exclude": [
-    ".meteor"
+  "files": [
+    "packages/ioc-container/ioc-container.js",
+    "packages/ioc-container/ioc-contianer-tests.js",
+    "packages/ioc-container/decorators.js",
+    "packages/ioc-container/variadicNew.js"
   ]
 }

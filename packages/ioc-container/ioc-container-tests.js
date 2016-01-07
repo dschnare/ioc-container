@@ -1,43 +1,59 @@
 /*global Tinytest*/
 Tinytest.add('ioc container injection and release', function (test) {
-  class T {
-    constructor(a, b, c, thePort) {
-      this.a = a;
-      this.b = b;
-      this.c = c;
-      this.port = thePort;
-    }
+  let T = decorate(
+    inject(['a', 'b', 'c', '$port']),
+    transient,
+    initializable,
+    destroyable,
+    service('t'),
 
-    initialize() {
-      this.isInitialized = true;
-    }
+    class T {
+      constructor(a, b, c, thePort) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.port = thePort;
+      }
 
-    destroy() {
-      this.isDestroyed = true;
-    }
-  }
+      initialize() {
+        this.isInitialized = true;
+      }
 
-  let ioc = new IocContainer();
+      destroy() {
+        this.isDestroyed = true;
+      }
+    }
+  );
+
+  let ioc = IocContainer.app;
   ioc.config.set('port', '3000');
-  ioc.install('a', { name: 'a', destroy: () => test.fail() });
-  ioc.install('b', {
-    name: 'b',
-    initialize() {
-      this.isInitialized = true;
-    }
-  }, { transient: true });
-  ioc.install('c', class {
-    constructor(a) {
+  factory('a', () => {
+    return { name: 'a', destroy: () => test.fail() };
+  });
+  ioc.factory('b', () => {
+    return {
+      name: 'b',
+      initialize() {
+        this.isInitialized = true;
+      },
+      destroy() {
+        test.fail();
+      }
+    };
+  }, { transient: true, initializable: true });
+  ioc.service('c', class {
+    static inject() { return ['a']; }
+
+    constructor(theA) {
       this.name = 'c';
-      this.a = a;
+      this.a = theA;
     }
 
     initialize() {
       this.isInitialized = true;
     }
-  }, { transient: true, newable: true });
+  }, { transient: true, initializable: true });
 
-  ioc.install('t', T, { transient: true, newable: true, inject: ['a', 'b', 'c', '$port'] });
   let t = ioc.resolve('t');
 
   test.equal(t.a.name, 'a', 'Expected t#a to have a name equal to "a"');
@@ -82,13 +98,13 @@ Tinytest.add('ioc parent container injection', function (test) {
   }
 
   let ioc = new IocContainer();
-  ioc.install('a', { name: 'a' });
-  ioc.install('array', [1, 2, 3, 4]);
+  ioc.constant('a', { name: 'a' });
+  ioc.constant('array', [1, 2, 3, 4]);
 
   let childIoc = new IocContainer(ioc);
-  childIoc.install('b', { name: 'b' });
+  childIoc.constant('b', { name: 'b' });
 
-  childIoc.install('t', T, { newable: true });
+  childIoc.service('t', T);
 
   test.isTrue(childIoc.canResolve('array'), 'Expected child IOC container to be able to resolve "array"');
 

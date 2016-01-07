@@ -1,7 +1,7 @@
 /*global Package*/
 Package.describe({
   name: 'dschnare:ioc-container',
-  version: '0.2.0',
+  version: '1.0.0',
   // Brief, one-line summary of the package.
   summary: 'A simple IOC container for Meteor',
   // URL to the Git repository containing the source code for this package.
@@ -18,9 +18,20 @@ Package.onUse(function(api) {
   api.addFiles([
     // Core
     'variadicNew.js',
-    'ioc-container.js'
+    'ioc-container.js',
+    'decorators.js'
   ]);
-  api.export('IocContainer');
+  api.export([
+    'IocContainer',
+    'decorate',
+    'service',
+    'factory',
+    'constant',
+    'inject',
+    'transient',
+    'initializable',
+    'destroyable'
+  ]);
 });
 
 Package.onTest(function(api) {
