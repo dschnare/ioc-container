@@ -267,8 +267,6 @@ IocContainer = class {
   // {private} inject(fn, { deps, wrapper })
   inject(fn, { deps, wrapper } = {}) {
     if (typeof fn === 'function') {
-      deps = deps || fn.inject;
-
       if (fn.length > 0) {
         deps = deps || (typeof fn.inject === 'function' ?
           fn.inject() : fn.inject);

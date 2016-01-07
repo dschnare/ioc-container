@@ -1,3 +1,12 @@
+# 1.0.1
+
+**Jan. 7, 2016**
+
+patch(factory) Remove redundant `inject` property retrieval
+
+Remove redundant `inject` property retrieval when installing a factory service.
+
+
 # 1.0.0
 
 **Jan. 5, 2016**
