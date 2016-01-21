@@ -1,3 +1,16 @@
+# 1.1.3
+
+**Jan. 21, 2016**
+
+fix(config) Ensure the $config factory is transient
+
+Ensure the transient option for the $config factory is set to true, otherwise
+the same object will be returned each time $config is resolved. This may lead
+to missing keys on the config object being returned.
+
+Refactor valueOf() to return a shallow copy of the intenral config object.
+
+
 # 1.1.2
 
 **Jan. 21, 2016**

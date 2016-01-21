@@ -56,12 +56,12 @@ class Config {
     this._cache = {};
   }
 
-  toJSON() {
-    return JSON.stringify(this._cache);
-  }
-
   valueOf() {
-    return JSON.parse(this.toJSON());
+    let obj = {};
+    for (let key in this._cache) {
+      obj[key] = this._cache[key];
+    }
+    return obj;
   }
 }
 
@@ -91,7 +91,7 @@ IocContainer = class {
       });
     }
 
-    this.factory('$config', () => this.config.valueOf());
+    this.factory('$config', () => this.config.valueOf(), { transient: true });
   }
 
   service(name, Ctor, {transient, concerns, inject, initializable, destroyable} = {}) {
