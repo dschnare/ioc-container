@@ -1,3 +1,13 @@
+# 1.1.2
+
+**Jan. 21, 2016**
+
+docs(service, factory) Add docs describing new properties
+
+Add docs to describe the support for the transient, initializable and
+destroyable static properties on services and factories.
+
+
 # 1.1.1
 
 **Jan. 21, 2016**

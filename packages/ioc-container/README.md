@@ -116,6 +116,15 @@ In addition to the `inject` parameter an `inject` array property or function on
 the constructor (i.e. static) can be sepcified. However the `inject` parameter
 will take precedence.
 
+In addition to the `inject` parameter an `inject` array property or function on
+the constructor (i.e. static) can be sepcified. However the `inject` parameter
+will take precedence.
+
+In addition to the `transient`, `initailizable` and `destroyable` parameters,
+properties of the same name can be defined as either a function that returns a
+truthy value or a property set to a truthy value on the constructor
+(i.e. static). However the parameters will take precedence.
+
 All services can optionally define `initialize` and `destroy` methods that will
 be called if the `initializable` and `destroyable` parameters are set to
 `true`. `initialize` will be called after the service has been constructed and
@@ -124,6 +133,10 @@ be called if the `initializable` and `destroyable` parameters are set to
 **Example:**
 
     ioc.service('myService', class {
+      /* can define options as static properties, but will
+      be overridden by parameters passed to service() method */
+      static transient() { return true }
+
       constructor(a, b, port) {
         this.a = a;
         this.b = b;
@@ -171,6 +184,11 @@ parameter is useful if your code is obfuscated.
 In addition to the `inject` parameter an `inject` array property or function on
 the function (i.e. static) can be sepcified. However the `inject` parameter
 will take precedence.
+
+In addition to the `transient`, `initailizable` and `destroyable` parameters,
+properties of the same name can be defined as either a function that returns a
+truthy value or a property set to a truthy value on the function (i.e. static).
+However the parameters will take precedence.
 
 All services can optionally define `initialize` and `destroy` methods that will
 be called if the `initializable` and `destroyable` parameters are set to
