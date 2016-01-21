@@ -2,6 +2,10 @@
 let functionToString = Function.prototype.toString;
 let hasOwnProperty = Object.prototype.hasOwnProperty;
 
+function readProp(o, prop) {
+  return typeof o[prop] === 'function' ? o[prop]() : o[prop];
+}
+
 class Config {
   constructor(parentConfig) {
     this._cache = {};
@@ -95,15 +99,19 @@ IocContainer = class {
 
     let model = this._models[name] = this._models[name] || {};
     model.instances = [];
-    model.transient = !!transient;
     model.service = true;
     model.factory = false;
     model.constant = false;
-    model.initializable = !!initializable;
-    model.destroyable = !!destroyable;
 
-    inject = inject ||
-      (typeof Ctor.inject === 'function' ? Ctor.inject() : Ctor.inject);
+    model.transient = !!(transient === undefined ?
+      readProp(Ctor, 'transient') : transient);
+    model.initializable = !!(initializable === undefined ?
+      readProp(Ctor, 'initializable') : initializable);
+    model.destroyable = !!(destroyable === undefined ?
+      readProp(Ctor, 'destroyable') : destroyable);
+
+    inject = inject === undefined ?
+      readProp(Ctor, 'inject') : inject;
 
     model.handler = () => this.injectNewable(Ctor, { deps: inject });
 
@@ -117,15 +125,19 @@ IocContainer = class {
 
     let model = this._models[name] = this._models[name] || {};
     model.instances = [];
-    model.transient = !!transient;
     model.service = false;
     model.factory = true;
     model.constant = false;
-    model.initializable = !!initializable;
-    model.destroyable = !!destroyable;
 
-    inject = inject ||
-      (typeof fn.inject === 'function' ? fn.inject() : fn.inject);
+    model.transient = !!(transient === undefined ?
+      readProp(fn, 'transient') : transient);
+    model.initializable = !!(initializable === undefined ?
+      readProp(fn, 'initializable') : initializable);
+    model.destroyable = !!(destroyable === undefined ?
+      readProp(fn, 'destroyable') : destroyable);
+
+    inject = inject === undefined ?
+      readProp(fn, 'inject') : inject;
 
     model.handler = () => this.inject(fn, { deps: inject });
 
@@ -137,9 +149,11 @@ IocContainer = class {
   constant(name, obj) {
     let model = this._models[name] = this._models[name] || {};
     model.instances = [];
-    model.transient = false;
     model.newable = false;
+    model.service = false;
+    model.factory = false;
     model.constant = true;
+    model.transient = false;
     model.initializable = false;
     model.destroyable = false;
     model.handler = () => obj;

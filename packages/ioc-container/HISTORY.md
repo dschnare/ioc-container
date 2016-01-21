@@ -1,3 +1,20 @@
+# 1.1.0
+
+**Jan. 21, 2016**
+
+feat(IocContainer) Add support for properties on services and factories
+
+Add support for transient, initializable and destroyable properties on
+service constructors and factory functions. These properties can either be a
+function that returns a truthy value or a these properties can be a truthy
+value.
+
+The transient, initializable and destroyable options used when registering the
+service or factory will take precedence over the any properties on the service
+or factory being registered.
+
+
+
 # 1.0.0
 
 **Jan. 5, 2016**
