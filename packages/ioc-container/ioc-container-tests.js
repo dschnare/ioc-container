@@ -1,11 +1,12 @@
 /*global Tinytest*/
 Tinytest.add('ioc container injection and release', function (test) {
   class T {
-    constructor(a, b, c, thePort) {
+    constructor(a, b, c, thePort, theChild) {
       this.a = a;
       this.b = b;
       this.c = c;
       this.port = thePort;
+      this.child = theChild;
     }
 
     initialize() {
@@ -18,7 +19,10 @@ Tinytest.add('ioc container injection and release', function (test) {
   }
 
   let ioc = new IocContainer();
-  ioc.config.set('port', '3000');
+  ioc.config.setKeys({
+    port: '3000',
+    nested: { child: 45 }
+  });
   ioc.factory('a', () => {
     return { name: 'a', destroy: () => test.fail() };
   });
@@ -53,7 +57,7 @@ Tinytest.add('ioc container injection and release', function (test) {
 
   ioc.service('t', T, {
     transient: true,
-    inject: ['a', 'b', 'c', '$port'],
+    inject: ['a', 'b', 'c', '$port', '$nested.child'],
     initializable: true,
     destroyable: true
   });
@@ -66,6 +70,7 @@ Tinytest.add('ioc container injection and release', function (test) {
   test.isTrue(t.c.a === t.a, 'Expected t#c#a to be the same object as t#a');
   test.equal(t.c.aa.name, 'aa', 'Expected t#c#a#name to be "aa"');
   test.equal(t.port, '3000', 'Expected t#port to be "3000"');
+  test.equal(t.child, 45, 'Expected t#child to be 45');
 
   test.isTrue(t.isInitialized, 'Expected to t#initialize to be called');
   test.isFalse(t.a.isInitialized, 'Expected to t#a#initialize to be called');

@@ -1,3 +1,14 @@
+# 1.2.0
+
+**Jan. 21, 2016**
+
+feat(config) Add setKeys() to config manager
+
+Add setKeys() to config manager that will flatten an object hiearchy into
+config keys separated by '.'. Update the docs to include describing the config
+manager.
+
+
 # 1.1.3
 
 **Jan. 21, 2016**

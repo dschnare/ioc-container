@@ -88,6 +88,56 @@ conatiner. If a parent container is specified then `resolve()` will traverse
 into the parent container if the resolution fails using this own container.
 
 
+## IocContainer#config
+
+    config
+
+A reference to a key:value pair config key manager for this container. If a
+parent container was specified when constructing the container the parent
+relationshiop is passed on to this config so that get() traverses the parent
+hiearchy.
+
+The config manager has the following methods.
+
+- get(key, defaultValue=undefined) = Retrieves the specified key.
+
+- set(key, value) = Sets a key to the specified value.
+
+- setKeys(keys) = Sets keys all at once.
+
+- unset(key) = Unsets a key by removing it.
+
+- exists(key) = Determines if they key exists on this config.
+
+- keys() = Retrieves the keys in this config.
+
+- clear() = Removes all keys on this config.
+
+- valueOf() = Retrieves a shallow copy of all keys in this config.
+
+When looking up a key via get() the parent config manager (if speicified when
+the IocContainer was constructed) will be travered if the key does not exist.
+If the key does not exist in the entire config hierarhcy then returns
+defaultValue.
+
+Take note that the config manager is a flat key:value pair hash. However as a
+convenience you can flatten a config object hiearchy by calling setKeys().
+
+**Example:**
+
+    let ioc = new IocContainer()
+    ioc.config.setKeys({
+      port: 3000,
+      routes: {
+        home: '/home',
+        about: '/about'
+      }
+    })
+
+    // Returns '/home'
+    ioc.config.get('routes.home')
+
+
 ## IocContainer#service
 
     service(name, Ctor, { transient, concerns, inject, initializable, destroyable })

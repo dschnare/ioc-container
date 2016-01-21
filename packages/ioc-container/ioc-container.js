@@ -24,19 +24,29 @@ class Config {
     }
   }
 
-  // set(map)
   // set(key, value)
   set(key, value) {
     if (typeof key === 'string') {
       this._cache[key] = value;
-    } else {
-      let map = key;
-      for (let k in map) {
-        if (hasOwnProperty.call(map, k)) {
-          this._cache[k] = map[k];
-        }
+    }
+  }
+
+  setKeys(keys, prefix='') {
+    let o = this._cache;
+    for (let key in keys) {
+      let v = keys[key];
+      if (Array.isArray(v)) {
+        o[prefix + key] = v;
+      } else if (typeof v === 'object' && v) {
+        this.setKeys(v, prefix + key + '.');
+      } else {
+        o[prefix + key] = v;
       }
     }
+  }
+
+  unset(key) {
+    delete this._cache[key];
   }
 
   exists(key) {
