@@ -1,3 +1,13 @@
+# 1.1.1
+
+**Jan. 21, 2016**
+
+test(service, factory) Add test for properties on services and factories
+
+Add a check in tests to ensure transient, inject and destroyable properties
+are overridden by the options used when registering the service or factory.
+
+
 # 1.1.0
 
 **Jan. 21, 2016**

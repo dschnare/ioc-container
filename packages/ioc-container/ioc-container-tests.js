@@ -22,6 +22,9 @@ Tinytest.add('ioc container injection and release', function (test) {
   ioc.factory('a', () => {
     return { name: 'a', destroy: () => test.fail() };
   });
+  ioc.factory('aa', () => {
+    return { name: 'aa', destroy: () => test.fail() };
+  });
   ioc.factory('b', () => {
     return {
       name: 'b',
@@ -34,17 +37,19 @@ Tinytest.add('ioc container injection and release', function (test) {
     };
   }, { transient: true, initializable: true });
   ioc.service('c', class {
-    static inject() { return ['a']; }
+    static transient() { return false; }
+    static inject() { return ['a', 'a']; }
 
-    constructor(theA) {
+    constructor(theA, theAA) {
       this.name = 'c';
       this.a = theA;
+      this.aa = theAA;
     }
 
     initialize() {
       this.isInitialized = true;
     }
-  }, { transient: true, initializable: true });
+  }, { transient: true, initializable: true, inject: ['a', 'aa'] });
 
   ioc.service('t', T, {
     transient: true,
@@ -59,6 +64,7 @@ Tinytest.add('ioc container injection and release', function (test) {
   test.equal(t.b.name, 'b', 'Expected t#b to have a name equal to "b"');
   test.equal(t.c.name, 'c', 'Expected t#c to have a name equal to "c"');
   test.isTrue(t.c.a === t.a, 'Expected t#c#a to be the same object as t#a');
+  test.equal(t.c.aa.name, 'aa', 'Expected t#c#a#name to be "aa"');
   test.equal(t.port, '3000', 'Expected t#port to be "3000"');
 
   test.isTrue(t.isInitialized, 'Expected to t#initialize to be called');
@@ -72,7 +78,7 @@ Tinytest.add('ioc container injection and release', function (test) {
   test.equal(deps[1].value.name, 'b', 'Expected second dep of t to be b');
   test.equal(deps[2].value.name, 'c', 'Expected third dep of t to be c');
 
-  test.equal(deps[2].deps.length, 1);
+  test.equal(deps[2].deps.length, 2);
   test.equal(deps[2].deps[0].value.name, 'a', 'Expected first dep of c to be a');
 
   ioc.release(t);
