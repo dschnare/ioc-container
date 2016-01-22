@@ -1,3 +1,13 @@
+# 1.2.1
+
+**Jan. 21, 2016**
+
+chore(initializing) Dependencies are tracked during initialization
+
+Ensure resolved services during initializing phase of registered services are
+tracked as dependencies so that they get released appropriately.
+
+
 # 1.2.0
 
 **Jan. 21, 2016**

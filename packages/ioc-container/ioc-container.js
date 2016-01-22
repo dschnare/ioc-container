@@ -209,9 +209,11 @@ IocContainer = class {
           this._resolveStack.push(instance);
           instance.value = handler();
           instances.push(instance);
-          this._resolveStack.pop();
-
+          // Wait to pop the instance from the resolve stack so that
+          // any resolved services in the initialzing lifecycle concern
+          // will be tracked as dependencies.
           this._applyLifecycleConcern(model, instance, 'initializing');
+          this._resolveStack.pop();
 
           if (model.initializable &&
             typeof instance.value.initialize === 'function') {
