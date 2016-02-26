@@ -1,9 +1,9 @@
 /*global Package*/
 Package.describe({
   name: 'dschnare:ioc-container',
-  version: '1.2.1',
+  version: '2.0.0',
   // Brief, one-line summary of the package.
-  summary: 'A simple IOC container for Meteor',
+  summary: 'A simple IOC container',
   // URL to the Git repository containing the source code for this package.
   git: 'https://github.com/dschnare/meteor-ioc-container',
   // By default, Meteor will default to using README.md for documentation.
@@ -14,18 +14,30 @@ Package.describe({
 Package.onUse(function(api) {
   api.versionsFrom('1.2.1');
   api.use('ecmascript');
-  api.addFiles('polyfills.js', 'client');
   api.addFiles([
-    // Core
-    'variadicNew.js',
-    'ioc-container.js'
+    'lib/polyfills/Array.some.js',
+    'lib/polyfills/Array.indexOf.js'
+  ], 'client');
+  api.addFiles([
+    'lib/variadicNew.js',
+    'lib/createMap.js',
+    'lib/createServiceEntry.js',
+    'lib/createIocContainer.js'
   ]);
-  api.export('IocContainer');
+  api.export('createIocContainer');
 });
 
 Package.onTest(function(api) {
   api.use('ecmascript');
   api.use('tinytest');
-  api.use('dschnare:ioc-container');
-  api.addFiles('ioc-container-tests.js');
+  api.addFiles([
+    'lib/variadicNew.js',
+    'lib/variadicNew.spec.js',
+    'lib/createMap.js',
+    'lib/createMap.spec.js',
+    'lib/createServiceEntry.js',
+    'lib/createServiceEntry.spec.js',
+    'lib/createIocContainer.js',
+    'lib/createIocContainer.spec.js'
+  ]);
 });
