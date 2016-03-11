@@ -1,3 +1,27 @@
+# 2.0.1
+
+**Mar. 11, 2016**
+
+chore(services) Return the registered factory
+
+Return the factory and instance when registering a service via
+transient/singleton and instance respectively. This was added just for
+conveinence so that a factory or instance can be referenced and
+registered in a single line.
+
+
+# 2.0.0
+
+**February 26, 2016**
+
+refactor(api) Refactor entire API
+
+Refactor entire API to follow the conventions used by the IOC system in
+ASP.NET 5. The reason for this refactor was because the current API was getting
+confusing and hard to maintain and the ASP.NET IOC API was refreshingly simple
+yet robust enough for complex applications.
+
+
 # 1.2.1
 
 **Jan. 21, 2016**

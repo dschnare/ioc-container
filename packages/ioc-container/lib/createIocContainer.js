@@ -169,6 +169,8 @@ createIocContainer = function (parent) {
 
       registry[name] = createServiceEntry(ioc, name, type, () => instance)
       registry[name].addLifecycleConcerns(concerns)
+
+      return instance
     },
 
     singleton (name, factory, {deps, isClass, concerns} = {deps: [], isClass: false, concerns: {}}) {
@@ -197,6 +199,8 @@ createIocContainer = function (parent) {
       if (concerns) {
         registry[name].addLifecycleConcerns(concerns)
       }
+
+      return factory
     },
 
     transient (name, factory, {deps, isClass, concerns} = {deps: [], isClass: false, concerns: {}}) {
@@ -220,6 +224,8 @@ createIocContainer = function (parent) {
       if (concerns) {
         registry[name].addLifecycleConcerns(concerns)
       }
+
+      return factory
     }
   }
 }
