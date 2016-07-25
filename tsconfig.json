@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es3",
+    "module": "commonjs",
+    "allowJs": true,
+    "moduleResolution": "node"
+  },
+  "exclude": [
+    "node_modules",
+    "commonjs",
+    "meteor",
+    "src/polyfills"
+  ]
+}
