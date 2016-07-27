@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc -p . --outDir commonjs",
-    "test": "npm run build && tape commonjs/lib/*.spec.js commonjs/*.spec.js"
+    "test": "tape commonjs/lib/*.spec.js commonjs/*.spec.js"
   },
   "repository": {
     "type": "git",

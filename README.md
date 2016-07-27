@@ -5,18 +5,32 @@ An IOC container.
 
 # Install
 
-Node:
+**Node**
 
     npm install @dschnare/ioc-container
 
-Meteor:
+**Meteor**
 
     meteor add dschnare:ioc-container
 
 
-# Quick Start
+# Importing
 
-## ES6 (with Nodejs module resolution)
+**Node**
+
+    var ioc = require('@dschnare/ioc-container)
+    var IocContainer = require('@dschnare/ioc-container).IocContainer
+
+**Meteor**
+
+    import ioc, {IocContainer} from ('meteor/dschnare:ioc-container)
+
+**ES6 (Nodejs module resolution)**
+
+    import ioc, {IocContainer} from ('ioc-container/src/IocContainer)
+
+
+# Quick Start
 
     import ioc from 'ioc-container/src/IocContainer'
 
@@ -64,19 +78,6 @@ Meteor:
     // Later when we're done with the widget instance...
     ioc.release(widget)
     widget = null
-
-
-## Nodejs / CommonJS
-
-    var ioc = require('@dschnare/ioc-container').default
-
-    // Code as usual...
-
-## Meteor 1.2.1+
-
-    import ioc from 'meteor/dschnare:ioc-container'
-
-    // Code as usual...
 
 
 

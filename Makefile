@@ -2,7 +2,7 @@
 
 # Typical Uses
 #
-# Build for NodeJS and Meteor
+# Build for Nodejs
 #   make
 #
 # Test
@@ -17,22 +17,20 @@
 
 
 # The directory we'll build files for NodeJS.
-build_dir := build
+build_dir := commonjs
 # Grab the current directory. It's expected that make will be run in the package root.
 pwd := $(shell pwd)
 # Read the current version of the package.
 current_version := $(shell node -e 'console.log(require("./package.json").version)')
-# Spec files that contain our tests
-specs = $(shell ls $(build_dir)/*.spec.js $(build_dir)/**/*.spec.js)
 
 
 
 # Run the default targerts.
 default : build meteor/packages/ioc-container/src
 
-# Build the ES5 NodeJS files from the ES2015 source files.
+# Build the ES3 NodeJS files from the ES2015 source files.
 build : src/*
-	@./node_modules/.bin/tsc -p src --outDir $(build_dir)
+	@npm run build
 
 # Create the symbolic links for the meteor project.
 meteor/packages/ioc-container/src :
@@ -41,7 +39,7 @@ meteor/packages/ioc-container/src :
 
 # Run the tests in NodeJS.
 test : build
-	@./node_modules/.bin/tape $(specs)
+	@npm test
 
 # Publish the package on NPM and Atmosphere. This requires the package already exist on Atmosphere.
 publish : default
@@ -57,9 +55,9 @@ set-version : check-version
 # Ensure a VERSION is specified at the command line and that it is different than the current version.
 check-version :
 ifeq ($(VERSION),)
-	$(error VERSION on command line not specified)
+	$(error VERSION on command line not specified. Use VERSION=x.x.x on the command line.)
 else ifeq ($(current_version), $(VERSION))
-	$(error Version has not been updated since $(current_version))
+	$(error Version has not been updated since $(current_version).)
 endif
 
 # Clean all artifacts.

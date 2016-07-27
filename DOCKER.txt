@@ -1,0 +1,8 @@
+Shell:
+
+docker run -it --rm --name shell -v "$PWD":/usr/src/app -w /usr/src/app node:6 bash
+
+
+Publishing:
+
+docker run -it --rm --name publish -v "$PWD":/usr/src/app -w /usr/src/app node:6 npm run publish
